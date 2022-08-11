@@ -1,70 +1,85 @@
-# Getting Started with Create React App
+# createContext
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+-create a file that will represent the context\
+-import createContext from react\
+-creation of the context ex:
 
-## Available Scripts
+    const CartContext = createContext();
 
-In the project directory, you can run:
+-export it 
 
-### `npm start`
+    export default CartContext;
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+-export the provider => the parent of the CartContext element, thanks it every component that we wrap around gonna have access to the value;
+children is a prop that React give, it represent all the components that are wrapped around this context provider  ex:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    export function CartProvider({ children }) {
 
-### `npm test`
+    return (
+        <CartContext.Provider value={{ item : 1 }}>{children}</CartContext.Provider>
+    )
+    
+    }
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+-then take this provider and wrap the application around, in App.js :
 
-### `npm run build`
+    import { CartProvider } from './CartContext' 
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    function App() {
+    return (
+        <div className="App">
+        <CartProvider>
+            <Nav/>
+            <Routes>
+                <Route path="/" element={<Products />}/>
+                <Route path="/checkout" element={<Checkout />} />
+            </Routes>
+        </CartProvider>
+        </div>
+    );
+    }
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+-to use it (so the value inside the provider), start to import CartContext and useContext, ex in Nav.js
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    import CartContext from '../CartContext';
+    import { useContext } from 'react';
 
-### `npm run eject`
+-to have access and extract to the value save in variable the context:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+     const { item } = useContext(CartContext);
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+-to have more dynamic access, i can create directly some state and function and pass it to the provider's children ex in CartContext.js:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+    export function CartProvider({ children }) {
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+    const [items, setItems] = useState([]);
 
-## Learn More
+    const addToCart = (name, price) => {
+        setItems((prevState) => [...prevState, { name , price}]);
+    };
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    return (
+        <CartContext.Provider value={{ items, addToCart }}>{children}</CartContext.Provider>
+    )
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    }
 
-### Code Splitting
+-other exemple with the function addToCart in Card.js :
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+    function Card({name, price}) {
 
-### Analyzing the Bundle Size
+    const { addToCart } = useContext(CartContext)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    return(
+        <div onClick={() => addToCart(name, price)} className='card'>
+            <div className='product-box'>
+                <IoAccessibilitySharp />
+            </div>
+            <div className='purchase'>
+                <h3>{name}</h3>
+                <AiFillShopping />
+            </div>
+            <h4>${price}</h4>
+        </div>
+    )
+}
